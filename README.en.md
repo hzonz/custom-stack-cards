@@ -1,5 +1,5 @@
 
-> For English version, see [README.md](README.md)
+> 有关中文版本，请参阅 [README.md](README.md)
 
 # Custom Stack Cards
 
