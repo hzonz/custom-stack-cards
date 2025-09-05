@@ -1,4 +1,4 @@
-> 有关中文版本，请参阅 [README.md](README.md)
+> 有关中文版本，请参阅 [简体中文](README.md)
 
 # Custom Stack Cards
 
