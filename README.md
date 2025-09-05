@@ -54,12 +54,6 @@ cards:
     entity: sensor.time
   - type: sensor
     entity: sensor.date
-grid_options:
-  columns: 6
-  rows: 3
-styles:
-  ha-card:
-    - border-radius: 10px
 ```
 ### Horizontal Stack
 ```yaml
@@ -70,29 +64,27 @@ cards:
     entity: sensor.temperature
   - type: sensor
     entity: sensor.humidity
-grid_options:
-  columns: 6
-  rows: 1
-styles:
-  ha-card:
-    - border-radius: 10px
 ```
 ### 使用 card_mod 铺满高度
 ```yaml
 type: custom:vertical-stack-in-card
 cards:
-  - type: sensor
-    entity: sensor.time
+  - type: tile
+    entity: sensor.home_assistant_supervisor_cpu_percent
+    features_position: bottom
+    vertical: false
+  - type: tile
+    entity: sensor.home_assistant_supervisor_cpu_percent
+    features_position: bottom
+    vertical: false
 card_mod:
   style: |
     ha-card {
       height: 100%;
-      display: flex;
-      flex-direction: column;
     }
 grid_options:
   columns: 6
-  rows: 5
+  rows: 2
 ```
 ## 配置说明
 | 参数            | 类型     | 默认值 | 说明                                                                  |
