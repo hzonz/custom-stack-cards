@@ -8,7 +8,7 @@
 
 ## 致谢与版权
 
-本库部分代码引用自 [ofekasher/vertical-stack-in-card](https://github.com/ofekashery/vertical-stack-in-card)) 的 Vertical Stack 实现。感谢原作者 [ofekasher](https://github.com/ofekasher) 的开源贡献。
+本库部分代码引用自 [ofekasher/vertical-stack-in-card](https://github.com/ofekashery/vertical-stack-in-card) 的 Vertical Stack 实现。感谢原作者 [ofekasher](https://github.com/ofekasher) 的开源贡献。
 
 本项目在原作者基础上进行了优化，增加了：
 - 水平堆叠 (horizontal-stack-in-card)
