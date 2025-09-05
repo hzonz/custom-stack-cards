@@ -1,5 +1,5 @@
 console.log(
-  `%cvertical-stack-in-card\n%cVersion: ${'1.1.0'}`,
+  `%cvertical-stack-in-card\n%cVersion: 1.1.0`,
   'color: #1976d2; font-weight: bold;',
   ''
 );
@@ -40,7 +40,11 @@ class VerticalStackInCard extends HTMLElement {
 
     // 固定垂直排列
     cardContent.style.display = 'block';
-    this._refCards.forEach((child) => cardContent.appendChild(child));
+    this._refCards.forEach((child) => {
+      child.style.display = 'block';
+      child.style.width = '100%';
+      cardContent.appendChild(child);
+    });
 
     card.appendChild(cardContent);
 
@@ -108,7 +112,7 @@ class VerticalStackInCard extends HTMLElement {
     return sizes.reduce((a, b) => a + b, 0);
   }
 
-  // 固定垂直：默认1列，行数 = 卡片数量
+  // 默认1列，行数 = 卡片数量
   getGridOptions() {
     const c = this._config || {};
     return { rows: c.cards.length, columns: 1 };
@@ -136,7 +140,7 @@ window.customCards = window.customCards || [];
 window.customCards.push({
   type: 'vertical-stack-in-card',
   name: 'Vertical Stack In Card',
-  description: 'Fixed vertical stack of multiple cards, preserves native UI editor.',
+  description: 'Vertical stack without extra borders, supports styles:',
   preview: false,
   documentationURL: 'https://github.com/hzonz/custom-stack-cards',
 });
