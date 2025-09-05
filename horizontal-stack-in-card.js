@@ -38,7 +38,7 @@ class HorizontalStackInCard extends HTMLElement {
     card.header = config.title;
     card.style.overflow = 'hidden';
 
-    // 默认水平堆叠
+    // 水平堆叠
     cardContent.style.display = 'flex';
     this._refCards.forEach((child) => {
       child.style.flex = '1 1 0';
@@ -112,18 +112,19 @@ class HorizontalStackInCard extends HTMLElement {
     return sizes.reduce((a, b) => a + b, 0);
   }
 
+  // 默认1行，列数 = 卡片数量
   getGridOptions() {
     const c = this._config || {};
-    return { rows: 1, columns: c.columns ?? c.cards.length };
+    return { rows: 1, columns: c.cards.length };
   }
 
   static async getConfigElement() {
-    let cls = customElements.get('hui-vertical-stack-card');
+    let cls = customElements.get('hui-horizontal-stack-card');
     if (!cls) {
       const helpers = await window.loadCardHelpers();
-      helpers.createCardElement({ type: 'vertical-stack', cards: [] });
-      await customElements.whenDefined('hui-vertical-stack-card');
-      cls = customElements.get('hui-vertical-stack-card');
+      helpers.createCardElement({ type: 'horizontal-stack', cards: [] });
+      await customElements.whenDefined('hui-horizontal-stack-card');
+      cls = customElements.get('hui-horizontal-stack-card');
     }
     return cls.getConfigElement();
   }
@@ -139,7 +140,7 @@ window.customCards = window.customCards || [];
 window.customCards.push({
   type: 'horizontal-stack-in-card',
   name: 'Horizontal Stack In Card',
-  description: 'Group multiple cards into a single horizontal card, preserves native UI editor.',
+  description: 'Horizontal stack without extra borders, supports styles:',
   preview: false,
   documentationURL: 'https://github.com/hzonz/custom-stack-cards',
 });
