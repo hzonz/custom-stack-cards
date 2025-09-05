@@ -47,7 +47,8 @@ resources:
 ## 使用示例
 
 ### Vertical Stack
-```type: custom:vertical-stack-in-card
+```yaml
+type: custom:vertical-stack-in-card
 title: Vertical Stack
 cards:
   - type: sensor
@@ -62,7 +63,8 @@ styles:
     - border-radius: 10px
 
 ### Horizontal Stack
-```type: custom:horizontal-stack-in-card
+```yaml
+type: custom:horizontal-stack-in-card
 title: Horizontal Stack
 cards:
   - type: sensor
@@ -77,7 +79,8 @@ styles:
     - border-radius: 10px
 
 ### 使用 card_mod 铺满高度
-```type: custom:vertical-stack-in-card
+```yaml
+type: custom:vertical-stack-in-card
 cards:
   - type: sensor
     entity: sensor.time
