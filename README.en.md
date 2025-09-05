@@ -111,4 +111,5 @@ Original Vertical Stack project: https://github.com/ofekashery/vertical-stack-in
 HACS installation supports official custom card management
 
 # Special Note
-This library and parts of the documentation were assisted and organized with
+This library and parts of the documentation were assisted and organized with **ChatGPT**.
+
