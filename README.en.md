@@ -1,4 +1,3 @@
-
 > 有关中文版本，请参阅 [README.md](README.md)
 
 # Custom Stack Cards
@@ -24,7 +23,6 @@ This project enhances the original by adding:
 - Supports horizontal stacking (`horizontal-stack-in-card`)  
 - Supports `styles: ha-card:` for custom card styling  
 - Preserves native UI editor compatibility  
-- Layouts can be controlled directly in YAML (`columns` / `rows`)
 
 ## Installation
 
@@ -45,11 +43,11 @@ This project enhances the original by adding:
 resources:
   - url: /local/custom-stack-cards/custom-stack-cards.js
     type: module
-
+```
 ## Examples
 
 ### Vertical Stack
-```
+```yaml
 type: custom:vertical-stack-in-card
 title: Vertical Stack
 cards:
@@ -57,16 +55,10 @@ cards:
     entity: sensor.time
   - type: sensor
     entity: sensor.date
-grid_options:
-  columns: 6
-  rows: 3
-styles:
-  ha-card:
-    - border-radius: 10px
 ```
 
 ### Horizontal Stack
-```
+```yaml
 type: custom:horizontal-stack-in-card
 title: Horizontal Stack
 cards:
@@ -74,30 +66,28 @@ cards:
     entity: sensor.temperature
   - type: sensor
     entity: sensor.humidity
-grid_options:
-  columns: 6
-  rows: 1
-styles:
-  ha-card:
-    - border-radius: 10px
 ```
 
 ### Full Height with card_mod
-```
+```yaml
 type: custom:vertical-stack-in-card
 cards:
-  - type: sensor
-    entity: sensor.time
+  - type: tile
+    entity: sensor.home_assistant_supervisor_cpu_percent
+    features_position: bottom
+    vertical: false
+  - type: tile
+    entity: sensor.home_assistant_supervisor_cpu_percent
+    features_position: bottom
+    vertical: false
 card_mod:
   style: |
     ha-card {
       height: 100%;
-      display: flex;
-      flex-direction: column;
     }
 grid_options:
   columns: 6
-  rows: 5
+  rows: 2
 ```
 
 ## Configuration Options
