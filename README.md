@@ -22,7 +22,6 @@
 - 支持水平堆叠 (horizontal-stack-in-card)
 - 支持 `styles: ha-card:` 自定义卡片样式
 - 保留原生 UI 编辑器兼容性
-- 可在 YAML 中直接控制布局 (columns / rows)
 
 ## 安装
 
@@ -43,7 +42,7 @@
 resources:
   - url: /local/custom-stack-cards/custom-stack-cards.js
     type: module
-
+```
 ## 使用示例
 
 ### Vertical Stack
@@ -61,7 +60,7 @@ grid_options:
 styles:
   ha-card:
     - border-radius: 10px
-
+```
 ### Horizontal Stack
 ```yaml
 type: custom:horizontal-stack-in-card
@@ -77,7 +76,7 @@ grid_options:
 styles:
   ha-card:
     - border-radius: 10px
-
+```
 ### 使用 card_mod 铺满高度
 ```yaml
 type: custom:vertical-stack-in-card
@@ -94,7 +93,7 @@ card_mod:
 grid_options:
   columns: 6
   rows: 5
-
+```
 ## 配置说明
 | 参数            | 类型     | 默认值 | 说明                                                                  |
 | ------------- | ------ | --- | ------------------------------------------------------------------- |
