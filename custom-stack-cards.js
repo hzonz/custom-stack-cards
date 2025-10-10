@@ -1,154 +1,44 @@
-console.log(
-  "%c Custom Stack Cards v1.0.1 ",
-  "color: #1976d2; font-weight: bold; background: #e3f2fd; border: 1px solid #1976d2; border-radius: 4px; padding: 2px 6px;"
-);
+import { LitElement, html, css } from "https://unpkg.com/lit@2.8.0/index.js?module";
+import { repeat } from "https://unpkg.com/lit@2.8.0/directives/repeat.js?module";
 
+const STACK_CARDS_VERSION = "1.0.1";
 
-class BaseStackInCard extends HTMLElement {
+(function logOnce() {
+  const key = "custom_stack_cards_logged";
+  if (!window[key]) {
+    window[key] = true;
+    console.log(
+      `%cCustom Stack Cards\n%cVersion: ${STACK_CARDS_VERSION}`,
+      "color: #1976d2; font-weight: bold; background: #e3f2fd; border: 1px solid #1976d2; border-radius: 4px; padding: 2px 6px;",
+      ""
+    );
+  }
+})();
+
+class BaseStackInCard extends LitElement {
+  static properties = {
+    hass: {},
+    config: {},
+    _refCards: { state: true },
+    _nested: { state: true },
+    _helpers: { state: false }
+  };
+
   constructor() {
     super();
     this._refCards = [];
-    this._config = {};
     this._nested = false;
     this._helpers = null;
   }
 
   setConfig(config) {
-    if (!config || !config.cards || !Array.isArray(config.cards)) {
+    if (!config || !Array.isArray(config.cards)) {
       throw new Error('Card config incorrect: "cards" must be an array');
     }
-    this._config = { ...config };
-    this._cardSize = {};
-    this._cardSize.promise = new Promise(resolve => (this._cardSize.resolve = resolve));
-    this.renderCard();
-  }
-
-  _detectNestedStack() {
-    let node = this.parentNode;
-    while (node) {
-      if (node.nodeType === 1) {
-        const ln = node.localName;
-        if ((ln === "vertical-stack-in-card" || ln === "horizontal-stack-in-card") && node !== this) {
-          return true;
-        }
-      }
-      node = node.parentNode || (node.getRootNode && node.getRootNode().host) || null;
-    }
-    return false;
-  }
-
-  async renderCard() {
-    const config = this._config;
-    if (!this._helpers) this._helpers = await window.loadCardHelpers();
-
-    this._refCards = await Promise.all(config.cards.map(c => this._createCardElement(c)));
+    this.config = config;
     this._nested = this._detectNestedStack();
-
-    const card = document.createElement("ha-card");
-    const cardContent = document.createElement("div");
-    card.header = config.title;
-    card.style.overflow = "hidden";
-
-    if (this._nested) {
-      card.style.boxShadow = "none";
-      card.style.borderRadius = "0";
-      card.style.border = "none";
-      card.style.background = "var(--card-background-color, rgba(0,0,0,0))";
-    } else {
-      card.dataset.stackRoot = "true";
-      card.style.background = "var(--card-background-color, white)";
-    }
-
-    this.applyLayout(cardContent);
-
-    this._refCards.forEach(child => {
-      this.applyChildStyle(child);
-      if (child.updateComplete) {
-        child.updateComplete.then(() => this._styleCard(child));
-      } else {
-        this._styleCard(child);
-      }
-      cardContent.appendChild(child);
-    });
-
-    card.appendChild(cardContent);
-
-    const shadowRoot = this.shadowRoot || this.attachShadow({ mode: "open" });
-    shadowRoot.innerHTML = "";
-    shadowRoot.appendChild(card);
-
-    this._cardSize.resolve();
+    this._renderCards();
   }
-
-  async _createCardElement(cardConfig) {
-    const element = cardConfig.type === "divider"
-      ? this._helpers.createRowElement(cardConfig)
-      : this._helpers.createCardElement(cardConfig);
-
-    element.hass = this._hass;
-
-    element.addEventListener("ll-rebuild", ev => {
-      ev.stopPropagation();
-      this._createCardElement(cardConfig).then(newEl => {
-        const idx = this._refCards.indexOf(element);
-        if (idx > -1) {
-          this._refCards[idx] = newEl;
-          const container = this.shadowRoot?.querySelector("ha-card > div");
-          if (container) container.replaceChild(newEl, element);
-        }
-        this._styleCard(newEl);
-      });
-    }, { once: true });
-
-    return element;
-  }
-
-  set hass(hass) {
-    this._hass = hass;
-    if (this._refCards) this._refCards.forEach(c => (c.hass = hass));
-  }
-
-  _styleCard(element) {
-    const config = this._config;
-    const applyStyles = ele => {
-      if (ele.dataset.styled) return;
-      ele.style.boxShadow = "none";
-      ele.style.borderRadius = "0";
-      ele.style.border = "none";
-
-      if (this._nested) {
-        ele.style.background = "var(--card-background-color, rgba(0,0,0,0))";
-      }
-
-      if ("styles" in config) {
-        Object.entries(config.styles).forEach(([k,v]) => ele.style.setProperty(k,v));
-      }
-
-      ele.dataset.styled = "true";
-    };
-
-    if (element.shadowRoot) {
-      const haCard = element.shadowRoot.querySelector("ha-card");
-      if (haCard) applyStyles(haCard);
-    } else if (typeof element.querySelector === "function") {
-      const haCard = element.querySelector("ha-card");
-      if (haCard) applyStyles(haCard);
-    }
-  }
-
-  _computeCardSize(card) {
-    if (typeof card.getCardSize === "function") return card.getCardSize();
-    return customElements.whenDefined(card.localName).then(() => this._computeCardSize(card)).catch(() => 1);
-  }
-
-  async getCardSize() {
-    await this._cardSize.promise;
-    const sizes = await Promise.all(this._refCards.map(c => this._computeCardSize(c)));
-    return sizes.reduce((a,b) => a+b, 0);
-  }
-
-  applyLayout(container) {}
-  applyChildStyle(child) {}
 
   static async getConfigElement() {
     let cls = customElements.get("hui-vertical-stack-card");
@@ -158,7 +48,124 @@ class BaseStackInCard extends HTMLElement {
       await customElements.whenDefined("hui-vertical-stack-card");
       cls = customElements.get("hui-vertical-stack-card");
     }
-    return cls.getConfigElement();
+    if (cls?.getConfigElement) {
+      return cls.getConfigElement();
+    }
+    return null;
+  }
+
+  _detectNestedStack() {
+    let node = this.parentNode;
+    while (node) {
+      if (
+        node.nodeType === 1 &&
+        (node.localName === "vertical-stack-in-card" ||
+          node.localName === "horizontal-stack-in-card") &&
+        node !== this
+      )
+        return true;
+      node =
+        node.parentNode ||
+        (node.getRootNode && node.getRootNode().host) ||
+        null;
+    }
+    return false;
+  }
+
+  async _renderCards() {
+    if (!this.config?.cards) return;
+    if (!this._helpers) this._helpers = await window.loadCardHelpers();
+
+    this._refCards = await Promise.all(
+      this.config.cards.map(async (c) => {
+        const el =
+          c.type === "divider"
+            ? this._helpers.createRowElement(c)
+            : this._helpers.createCardElement(c);
+        el.hass = this.hass;
+        return el;
+      })
+    );
+  }
+
+  shouldUpdate(changedProps) {
+    return (
+      changedProps.has("hass") ||
+      changedProps.has("config") ||
+      changedProps.has("_refCards")
+    );
+  }
+
+  updated(changedProps) {
+    if (changedProps.has("hass") && this._refCards) {
+      this._refCards.forEach((c) => (c.hass = this.hass));
+    }
+  }
+
+  render() {
+    return html`
+      <ha-card
+        .header=${this.config?.title}
+        style="overflow:hidden; ${this._nested
+          ? "background: var(--card-background-color, rgba(0,0,0,0)); box-shadow:none;"
+          : ""}"
+      >
+        <div style="${this._getLayoutStyle()}">
+          ${repeat(
+            this._refCards,
+            (c, i) => c.localName + ":" + i,
+            (c) => {
+              this._applyChildStyle(c);
+              return c;
+            }
+          )}
+        </div>
+      </ha-card>
+    `;
+  }
+
+  _applyChildStyle(child) {
+    const styleHaCard = (haCard) => {
+      if (!haCard || haCard.dataset.styled) return;
+
+      haCard.style.boxShadow = "none";
+      haCard.style.border = "none";
+
+      if (this._nested) {
+        haCard.style.borderRadius = "0";
+        haCard.style.background =
+          "var(--card-background-color, rgba(0,0,0,0))";
+      }
+
+      if (this.config?.styles) {
+        Object.entries(this.config.styles).forEach(([k, v]) =>
+          haCard.style.setProperty(k, v)
+        );
+      }
+
+      haCard.dataset.styled = "true";
+
+    if (child.shadowRoot) {
+      styleHaCard(child.shadowRoot.querySelector("ha-card"));
+    } else {
+      styleHaCard(child.querySelector("ha-card"));
+    }
+  }
+
+  async getCardSize() {
+    if (!this._refCards) return 1;
+    const sizes = await Promise.all(
+      this._refCards.map(async (card) => {
+        if (typeof card.getCardSize === "function") return card.getCardSize();
+        await customElements.whenDefined(card.localName);
+        return 1;
+      })
+    );
+    return sizes.reduce((a, b) => a + b, 0);
+  }
+
+  _getLayoutStyle() {
+    return "";
   }
 
   static getStubConfig() {
@@ -166,17 +173,23 @@ class BaseStackInCard extends HTMLElement {
   }
 }
 
+// 垂直堆叠
 class VerticalStackInCard extends BaseStackInCard {
-  applyLayout(container) { container.style.display = "block"; }
-  applyChildStyle(child) { child.style.display="block"; child.style.width="100%"; }
+  _getLayoutStyle() {
+    return "display:block;";
+  }
 }
 
+// 水平堆叠
 class HorizontalStackInCard extends BaseStackInCard {
-  applyLayout(container) { 
-    container.style.display = "flex"; 
-    container.style.gap = "8px";
+  _getLayoutStyle() {
+    return "display:flex;";
   }
-  applyChildStyle(child) { child.style.flex="1 1 0"; child.style.minWidth=0; }
+  _applyChildStyle(child) {
+    super._applyChildStyle(child);
+    child.style.flex = "1 1 0";
+    child.style.minWidth = "0";
+  }
 }
 
 customElements.define("vertical-stack-in-card", VerticalStackInCard);
@@ -184,6 +197,18 @@ customElements.define("horizontal-stack-in-card", HorizontalStackInCard);
 
 window.customCards = window.customCards || [];
 window.customCards.push(
-  { type: "vertical-stack-in-card", name: "Vertical Stack In Card", description: "Vertical stack without extra borders, supports styles:", preview:false, documentationURL:"https://github.com/hzonz/custom-stack-cards" },
-  { type: "horizontal-stack-in-card", name: "Horizontal Stack In Card", description: "Horizontal stack without extra borders, supports styles:", preview:false, documentationURL:"https://github.com/hzonz/custom-stack-cards" }
+  {
+    type: "vertical-stack-in-card",
+    name: "Vertical Stack In Card",
+    description: `Vertical stack without extra borders, v${STACK_CARDS_VERSION}`,
+    preview: true,
+    documentationURL: "https://github.com/hzonz/custom-stack-cards",
+  },
+  {
+    type: "horizontal-stack-in-card",
+    name: "Horizontal Stack In Card",
+    description: `Horizontal stack without extra borders, v${STACK_CARDS_VERSION}`,
+    preview: true,
+    documentationURL: "https://github.com/hzonz/custom-stack-cards",
+  }
 );
