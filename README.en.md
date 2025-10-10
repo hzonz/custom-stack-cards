@@ -2,48 +2,62 @@
 
 # Custom Stack Cards
 
-**Custom Stack Cards** is a Home Assistant custom card library that provides **Vertical Stack** and **Horizontal Stack** cards. These cards allow stacking multiple cards within a single `<ha-card>` while supporting custom styles. It preserves the native UI editor, removes extra borders and shadows, and keeps the interface clean.
+**Custom Stack Cards** is a custom card library for Home Assistant, providing **Vertical Stack** and **Horizontal Stack** card types. It allows stacking multiple cards inside a single `<ha-card>`, supports custom styles, and keeps compatibility with the native UI editor. Compared to the official stack cards, it removes extra borders and shadows for a cleaner look.
 
-> ⚠️ Note: `styles` is not supported in the visual editor and must be used in YAML configuration.
-
-## Acknowledgements & License
-
-This library includes parts of code from [ofekasher/vertical-stack-in-card](https://github.com/ofekashery/vertical-stack-in-card) for the Vertical Stack implementation.  
-Thanks to the original author [ofekasher](https://github.com/ofekashery) for the open-source contribution.
-
-This project enhances the original by adding:
-- Horizontal stacking (`horizontal-stack-in-card`)
-- Custom styles (`styles`) support
-- Removal of default borders and shadows
-- Compatibility with the official UI editor
+---
 
 ## Features
 
-- Supports vertical stacking (`vertical-stack-in-card`)  
-- Supports horizontal stacking (`horizontal-stack-in-card`)  
-- Supports `styles: ha-card:` for custom card styling  
-- Preserves native UI editor compatibility  
+- Vertical stack: `custom:vertical-stack-in-card`  
+- Horizontal stack: `custom:horizontal-stack-in-card`  
+- Support for `styles: ha-card:` custom styles  
+- Full compatibility with the native UI editor  
+- Removes default borders and shadows  
+
+---
 
 ## Installation
 
 ### Using HACS (Recommended)
 
-1. Open the Home Assistant HACS page  
-2. Click the top-right "Add Custom Repository"  
-3. Enter the repository URL: `https://github.com/hzonz/custom-stack-cards`  
-4. Select type **Dashboard**, then add  
-5. Search for **Custom Stack Cards** and install
+1. Open the HACS page in Home Assistant  
+2. Click the top-right **“Custom Repository”** button  
+3. Enter the repository URL:  
+```yaml
+https://github.com/hzonz/custom-stack-cards
+```
+4. Select **Dashboard** as the category, then add  
+5. Search for **Custom Stack Cards** and install  
 
 ### Manual Installation
 
 1. Download the `custom-stack-cards.js` file  
-2. Place it in the `www` folder, e.g.: `www/custom-stack-cards/custom-stack-cards.js`  
-3. Reference it in Lovelace resources:
+2. Place it in the `www` folder, for example:  
+```yaml
+www/custom-stack-cards/custom-stack-cards.js
+```
+3. Reference it in your Lovelace configuration:  
 ```yaml
 resources:
   - url: /local/custom-stack-cards/custom-stack-cards.js
     type: module
 ```
+
+---
+
+## Configuration Options
+
+| Parameter     | Type   | Default | Description                                                          |
+| ------------- | ------ | ------- | -------------------------------------------------------------------- |
+| type          | string | —       | `custom:vertical-stack-in-card` or `custom:horizontal-stack-in-card` |
+| title         | string | —       | Card title                                                           |
+| cards         | array  | —       | Array of cards to stack                                              |
+| grid\_options | object | —       | Layout options, supports `columns` and `rows`                        |
+| styles        | object | —       | Custom styles (⚠️ YAML only, not supported in the visual editor)     |
+| card\_mod     | object | —       | Can use `card_mod` to force child card height or layout              |
+
+---
+
 ## Examples
 
 ### Vertical Stack
@@ -56,7 +70,6 @@ cards:
   - type: sensor
     entity: sensor.date
 ```
-
 ### Horizontal Stack
 ```yaml
 type: custom:horizontal-stack-in-card
@@ -67,8 +80,7 @@ cards:
   - type: sensor
     entity: sensor.humidity
 ```
-
-### Full Height with card_mod
+### Fill height with card_mod
 ```yaml
 type: custom:vertical-stack-in-card
 cards:
@@ -90,26 +102,11 @@ grid_options:
   rows: 2
 ```
 
-## Configuration Options
-| Parameter     | Type   | Default | Description                                                          |
-| ------------- | ------ | ------- | -------------------------------------------------------------------- |
-| type          | string | —       | `custom:vertical-stack-in-card` or `custom:horizontal-stack-in-card` |
-| title         | string | —       | Card title                                                           |
-| cards         | array  | —       | Array of cards to stack                                              |
-| grid\_options | object | —       | Layout options, supports `columns` and `rows`                        |
-| styles        | object | —       | Custom styles, only effective in YAML                                |
-| card\_mod     | object | —       | Can use `card_mod` to force child card height or layout              |
+---
 
 ## Notes
-styles is not supported in the official visual editor and must be used in YAML
-grid_options.rows will not automatically stretch child cards; use card_mod to fill row height if needed
-Preserves original vertical / horizontal stack layout behavior
+grid_options.rows will not automatically stretch child card height. Use card_mod if you need full row height.
 
 ## Links
-Repository: https://github.com/hzonz/custom-stack-cards
-Original Vertical Stack project: https://github.com/ofekashery/vertical-stack-in-card
-HACS installation supports official custom card management
-
-# Special Note
-This library and parts of the documentation were assisted and organized with **ChatGPT**.
-
+- Repository：[hzonz/custom-stack-cards](https://github.com/hzonz/custom-stack-cards)
+- Original project:[ofekashery/vertical-stack-in-card ](https://github.com/ofekashery/vertical-stack-in-card) —— Thanks to the original author [ofekasher](https://github.com/ofekasher) for the open-source contribution.
