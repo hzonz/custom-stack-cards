@@ -58,9 +58,9 @@ resources:
 
 ---
 
-##使用示例
+## 使用示例
 
-###Vertical Stack
+### Vertical Stack
 ```yaml
 type: custom:vertical-stack-in-card
 title: Vertical Stack
@@ -70,7 +70,7 @@ cards:
   - type: sensor
     entity: sensor.date
 ```
-###Horizontal Stack
+### Horizontal Stack
 ```yaml
 type: custom:horizontal-stack-in-card
 title: Horizontal Stack
@@ -80,7 +80,7 @@ cards:
   - type: sensor
     entity: sensor.humidity
 ```
-###使用 card_mod 铺满高度
+### 使用 card_mod 铺满高度
 ```yaml
 type: custom:vertical-stack-in-card
 cards:
@@ -104,9 +104,9 @@ grid_options:
 
 ---
 
-##注意事项
+## 注意事项
 grid_options.rows 不会自动拉伸子卡高度，如需铺满请结合 card_mod 使用
 
-##链接
+## 链接
 仓库地址：[hzonz/custom-stack-cards](https://github.com/hzonz/custom-stack-cards)
 原始项目：[ofekashery/vertical-stack-in-card ](https://github.com/ofekashery/vertical-stack-in-card) —— 感谢原作者 [ofekasher](https://github.com/ofekasher) 的开源贡献
