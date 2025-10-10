@@ -23,7 +23,7 @@
 1. 打开 Home Assistant 的 HACS 页面  
 2. 点击右上角 **“添加存储库 (Custom Repository)”**  
 3. 填入仓库 URL:  
-```
+```yaml
 https://github.com/hzonz/custom-stack-cards
 ```
 4. 类型选择 **Dashboard**，然后添加  
@@ -33,11 +33,11 @@ https://github.com/hzonz/custom-stack-cards
 
 1. 下载 `custom-stack-cards.js` 文件  
 2. 放到 `www` 文件夹下，例如：  
-```
+```yaml
 www/custom-stack-cards/custom-stack-cards.js
 ```
 3. 在 Lovelace 配置中引用：  
-```
+```yaml
 resources:
   - url: /local/custom-stack-cards/custom-stack-cards.js
     type: module
@@ -105,8 +105,8 @@ grid_options:
 ---
 
 ## 注意事项
-grid_options.rows 不会自动拉伸子卡高度，如需铺满请结合 card_mod 使用
+grid_options.rows 不会自动拉伸子卡高度，如需铺满请结合 card_mod 使用。
 
 ## 链接
-仓库地址：[hzonz/custom-stack-cards](https://github.com/hzonz/custom-stack-cards)
-原始项目：[ofekashery/vertical-stack-in-card ](https://github.com/ofekashery/vertical-stack-in-card) —— 感谢原作者 [ofekasher](https://github.com/ofekasher) 的开源贡献
+- 仓库地址：[hzonz/custom-stack-cards](https://github.com/hzonz/custom-stack-cards)
+- 原始项目：[ofekashery/vertical-stack-in-card ](https://github.com/ofekashery/vertical-stack-in-card) —— 感谢原作者 [ofekasher](https://github.com/ofekasher) 的开源贡献
