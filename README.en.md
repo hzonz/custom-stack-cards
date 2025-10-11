@@ -10,7 +10,7 @@
 
 - Vertical stack: `custom:vertical-stack-in-card`  
 - Horizontal stack: `custom:horizontal-stack-in-card`  
-- Support for `styles: ha-card:` custom styles  
+- Supports styles: custom styling, with CSS property support 
 - Full compatibility with the native UI editor  
 - Removes default borders and shadows  
 
@@ -80,6 +80,21 @@ cards:
   - type: sensor
     entity: sensor.humidity
 ```
+
+### Unified Card Background
+```yaml
+type: custom:vertical-stack-in-card
+cards:
+  - type: sensor
+    entity: sensor.time
+  - type: sensor
+    entity: sensor.date
+styles:
+  background: rgba(0,0,0,0.3)
+  box-shadow: none
+
+```
+
 ### Fill height with card_mod
 ```yaml
 type: custom:vertical-stack-in-card
