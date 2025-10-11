@@ -10,7 +10,7 @@
 
 - 垂直堆叠：`custom:vertical-stack-in-card`  
 - 水平堆叠：`custom:horizontal-stack-in-card`  
-- 支持 `styles: ha-card:` 自定义样式  
+- 支持 `styles: ` 自定义样式, 支持CSS属性  
 - 保留原生 UI 编辑器兼容性  
 - 去除默认边框和阴影  
 
@@ -80,6 +80,21 @@ cards:
   - type: sensor
     entity: sensor.humidity
 ```
+
+### 统一卡片背景
+```yaml
+type: custom:vertical-stack-in-card
+cards:
+  - type: sensor
+    entity: sensor.time
+  - type: sensor
+    entity: sensor.date
+styles:
+  background: rgba(0,0,0,0.3)
+  box-shadow: none
+
+```
+
 ### 使用 card_mod 铺满高度
 ```yaml
 type: custom:vertical-stack-in-card
