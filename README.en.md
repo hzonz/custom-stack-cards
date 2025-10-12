@@ -9,8 +9,9 @@
 ## Features
 
 - Vertical stack: `custom:vertical-stack-in-card`  
-- Horizontal stack: `custom:horizontal-stack-in-card`  
-- Supports styles: custom styling, with CSS property support 
+- Horizontal stack: `custom:horizontal-stack-in-card`
+- Grid Stack: `custom:grid-stack-in-card`
+- Supports `styles:` custom styling, with CSS property support 
 - Full compatibility with the native UI editor  
 - Removes default borders and shadows  
 
@@ -52,33 +53,22 @@ resources:
 | type          | string | —       | `custom:vertical-stack-in-card` or `custom:horizontal-stack-in-card` |
 | title         | string | —       | Card title                                                           |
 | cards         | array  | —       | Array of cards to stack                                              |
-| grid\_options | object | —       | Layout options, supports `columns` and `rows`                        |
+| grid\_options | object | —       | Layout options, supports `columns` and `rows` and `autoheight`       |
 | styles        | object | —       | Custom styles (⚠️ YAML only, not supported in the visual editor)     |
-| card\_mod     | object | —       | Can use `card_mod` to force child card height or layout              |
 
 ---
 
 ## Examples
 
-### Vertical Stack
+### Stack
 ```yaml
-type: custom:vertical-stack-in-card
-title: Vertical Stack
+type: custom:vertical-stack-in-card  # 或 custom:horizontal-stack-in-card / custom:grid-stack-in-card
+title: My Stack
 cards:
   - type: sensor
     entity: sensor.time
   - type: sensor
     entity: sensor.date
-```
-### Horizontal Stack
-```yaml
-type: custom:horizontal-stack-in-card
-title: Horizontal Stack
-cards:
-  - type: sensor
-    entity: sensor.temperature
-  - type: sensor
-    entity: sensor.humidity
 ```
 
 ### Unified Card Background
@@ -92,10 +82,14 @@ cards:
 styles:
   background: rgba(0,0,0,0.3)
   box-shadow: none
-
 ```
 
-### Fill height with card_mod
+### Auto Height (autoheight: true)
+- Allows stack cards to automatically stretch child cards to fill the available vertical space.
+- Supports child card content adaptation, so even if a child card exceeds the stack height, it will still display and stretch properly.
+#### Supported Card Types:
+- Vertical Stack (vertical-stack-in-card)
+- Grid Stack (grid-stack-in-card)
 ```yaml
 type: custom:vertical-stack-in-card
 cards:
@@ -107,20 +101,16 @@ cards:
     entity: sensor.home_assistant_supervisor_cpu_percent
     features_position: bottom
     vertical: false
-card_mod:
-  style: |
-    ha-card {
-      height: 100%;
-    }
 grid_options:
   columns: 6
   rows: 2
+  autoheight: true
 ```
 
 ---
 
 ## Notes
-grid_options.rows will not automatically stretch child card height. Use card_mod if you need full row height.
+`styles:` only applies to the root card; for child cards, please use `card_mod`.
 
 ## Links
 - Repository：[hzonz/custom-stack-cards](https://github.com/hzonz/custom-stack-cards)
