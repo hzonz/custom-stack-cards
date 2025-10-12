@@ -1,8 +1,7 @@
 console.log(
-  "%c Custom Stack Cards v1.0.1 ",
+  "%c Custom Stack Cards v1.0.2 ",
   "color: #1976d2; font-weight: bold; background: #e3f2fd; border: 1px solid #1976d2; border-radius: 4px; padding: 2px 6px;"
 );
-
 
 class BaseStackInCard extends HTMLElement {
   constructor() {
@@ -11,6 +10,7 @@ class BaseStackInCard extends HTMLElement {
     this._config = {};
     this._nested = false;
     this._helpers = null;
+    this._rowHeightAuto = false; // 自动拉伸开关
   }
 
   setConfig(config) {
@@ -28,7 +28,12 @@ class BaseStackInCard extends HTMLElement {
     while (node) {
       if (node.nodeType === 1) {
         const ln = node.localName;
-        if ((ln === "vertical-stack-in-card" || ln === "horizontal-stack-in-card") && node !== this) {
+        if (
+          (ln === "vertical-stack-in-card" ||
+           ln === "horizontal-stack-in-card" ||
+           ln === "grid-stack-in-card") &&
+          node !== this
+        ) {
           return true;
         }
       }
@@ -58,6 +63,25 @@ class BaseStackInCard extends HTMLElement {
       card.dataset.stackRoot = "true";
       card.style.background = "var(--card-background-color, white)";
     }
+
+    // 判断是否启用自动拉伸
+    const hasGridOptions = !!config.grid_options;
+    this._rowHeightAuto = hasGridOptions && (config.grid_options.autoheight === true);
+
+    const rows = hasGridOptions && Number(config.grid_options.rows) > 0 ? Number(config.grid_options.rows) : null;
+    const columns = hasGridOptions && Number(config.grid_options.columns) > 0 ? Number(config.grid_options.columns) : null;
+
+    if (columns) card.style.gridColumn = `span ${columns}`;
+    if (rows && this._rowHeightAuto && (this.localName === "vertical-stack-in-card" || this.localName === "grid-stack-in-card")) {
+      const baseRowHeight = parseInt(
+        getComputedStyle(document.documentElement).getPropertyValue("--masonry-view-row-height") || "50",
+        10
+      );
+      card.style.minHeight = `${rows * baseRowHeight}px`;
+      card.style.height = "100%";
+    }
+
+    this._rowsContext = rows || 0;
 
     this.applyLayout(cardContent);
 
@@ -96,7 +120,6 @@ class BaseStackInCard extends HTMLElement {
           const container = this.shadowRoot?.querySelector("ha-card > div");
           if (container) container.replaceChild(newEl, element);
         }
-        this._styleCard(newEl);
       });
     }, { once: true });
 
@@ -109,19 +132,19 @@ class BaseStackInCard extends HTMLElement {
   }
 
   _styleCard(element) {
-    const config = this._config;
-    const applyStyles = ele => {
-      if (ele.dataset.styled) return;
+    if (!element || element.dataset.styled) return;
+
+    const applyStyles = (ele) => {
       ele.style.boxShadow = "none";
       ele.style.borderRadius = "0";
       ele.style.border = "none";
+      if (this._nested) ele.style.background = "var(--card-background-color, rgba(0,0,0,0))";
 
-      if (this._nested) {
-        ele.style.background = "var(--card-background-color, rgba(0,0,0,0))";
-      }
-
-      if ("styles" in config) {
-        Object.entries(config.styles).forEach(([k,v]) => ele.style.setProperty(k,v));
+      // ✅ v1.0.1 样式支持
+      if ("styles" in this._config) {
+        Object.entries(this._config.styles).forEach(([k, v]) => {
+          ele.style.setProperty(k, v);
+        });
       }
 
       ele.dataset.styled = "true";
@@ -144,7 +167,7 @@ class BaseStackInCard extends HTMLElement {
   async getCardSize() {
     await this._cardSize.promise;
     const sizes = await Promise.all(this._refCards.map(c => this._computeCardSize(c)));
-    return sizes.reduce((a,b) => a+b, 0);
+    return sizes.reduce((a, b) => a + b, 0);
   }
 
   applyLayout(container) {}
@@ -161,29 +184,86 @@ class BaseStackInCard extends HTMLElement {
     return cls.getConfigElement();
   }
 
-  static getStubConfig() {
-    return { cards: [] };
+  static getStubConfig() { return { cards: [] }; }
+}
+
+/** 垂直堆叠 */
+class VerticalStackInCard extends BaseStackInCard {
+  applyLayout(container) {
+    if (this._rowHeightAuto) {
+      container.style.display = "flex";
+      container.style.flexDirection = "column";
+      container.style.height = "100%";
+    } else {
+      container.style.display = "block";
+    }
+  }
+
+  applyChildStyle(child) {
+    if (this._rowHeightAuto) {
+      child.style.flex = "1 1 0";
+      child.style.minHeight = 0;
+      child.style.width = "100%";
+    } else {
+      child.style.display = "block";
+      child.style.width = "100%";
+    }
   }
 }
 
-class VerticalStackInCard extends BaseStackInCard {
-  applyLayout(container) { container.style.display = "block"; }
-  applyChildStyle(child) { child.style.display="block"; child.style.width="100%"; }
-}
-
+/** 水平堆叠 */
 class HorizontalStackInCard extends BaseStackInCard {
   applyLayout(container) { 
     container.style.display = "flex"; 
-    container.style.gap = "8px";
   }
   applyChildStyle(child) { child.style.flex="1 1 0"; child.style.minWidth=0; }
 }
 
+/** 网格堆叠 */
+class GridStackInCard extends BaseStackInCard {
+  applyLayout(container) {
+    container.style.display = "grid";
+
+    if (this._config.gridTemplateColumns) container.style.gridTemplateColumns = this._config.gridTemplateColumns;
+    else if (this._config.columns) container.style.gridTemplateColumns = `repeat(${this._config.columns}, 1fr)`;
+    else container.style.gridTemplateColumns = "1fr";
+
+    if (this._rowsContext > 0 && this._rowHeightAuto) {
+      container.style.gridTemplateRows = `repeat(${this._rowsContext}, 1fr)`;
+    } else {
+      const baseRowHeight = parseInt(
+        getComputedStyle(document.documentElement).getPropertyValue("--masonry-view-row-height") || "50", 10
+      );
+      container.style.gridAutoRows = `${baseRowHeight}px`;
+    }
+  }
+
+  applyChildStyle(child) {
+    child.style.minWidth = 0;
+    child.style.minHeight = 0;
+    if (child._config && child._config.gridArea) child.style.gridArea = child._config.gridArea;
+    child.style.width = "100%";
+  }
+
+  static async getConfigElement() {
+    let cls = customElements.get("hui-grid-card");
+    if (!cls) {
+      const helpers = await window.loadCardHelpers();
+      helpers.createCardElement({ type: "grid", cards: [] });
+      await customElements.whenDefined("hui-grid-card");
+      cls = customElements.get("hui-grid-card");
+    }
+    return cls.getConfigElement();
+  }
+}
+
 customElements.define("vertical-stack-in-card", VerticalStackInCard);
 customElements.define("horizontal-stack-in-card", HorizontalStackInCard);
+customElements.define("grid-stack-in-card", GridStackInCard);
 
 window.customCards = window.customCards || [];
 window.customCards.push(
-  { type: "vertical-stack-in-card", name: "Vertical Stack In Card", description: "Vertical stack without extra borders, supports styles:", preview:false, documentationURL:"https://github.com/hzonz/custom-stack-cards" },
-  { type: "horizontal-stack-in-card", name: "Horizontal Stack In Card", description: "Horizontal stack without extra borders, supports styles:", preview:false, documentationURL:"https://github.com/hzonz/custom-stack-cards" }
+  { type: "vertical-stack-in-card", name: "Vertical Stack In Card", description: "Vertical stack without extra borders, supports styles", preview:false, documentationURL:"https://github.com/hzonz/custom-stack-cards" },
+  { type: "horizontal-stack-in-card", name: "Horizontal Stack In Card", description: "Horizontal stack without extra borders, supports styles", preview:false, documentationURL:"https://github.com/hzonz/custom-stack-cards" },
+  { type: "grid-stack-in-card", name: "Grid Stack In Card", description: "Grid stack without extra borders, supports CSS grid layouts and styles", preview:false, documentationURL:"https://github.com/hzonz/custom-stack-cards" }
 );
