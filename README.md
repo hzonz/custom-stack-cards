@@ -9,7 +9,8 @@
 ## 特性
 
 - 垂直堆叠：`custom:vertical-stack-in-card`  
-- 水平堆叠：`custom:horizontal-stack-in-card`  
+- 水平堆叠：`custom:horizontal-stack-in-card`
+- 网格堆叠：`custom:grid-stack-in-card`
 - 支持 `styles: ` 自定义样式, 支持CSS属性  
 - 保留原生 UI 编辑器兼容性  
 - 去除默认边框和阴影  
@@ -52,33 +53,22 @@ resources:
 | type          | string | —   | `custom:vertical-stack-in-card` 或 `custom:horizontal-stack-in-card` |
 | title         | string | —   | 卡片标题                                                                |
 | cards         | array  | —   | 要堆叠的卡片数组                                                            |
-| grid\_options | object | —   | 布局选项，支持 columns 和 rows                                              |
+| grid\_options | object | —   | 布局选项，支持 columns 和 rows 和 autoheight                                              |
 | styles        | object | —   | 自定义样式（⚠️ 仅 YAML 配置，不支持可视化编辑器）                             |
-| card\_mod     | object | —   | 可用 card\_mod 强制子卡高度或布局                                              |
 
 ---
 
 ## 使用示例
 
-### Vertical Stack
+### Stack
 ```yaml
-type: custom:vertical-stack-in-card
-title: Vertical Stack
+type: custom:vertical-stack-in-card  # 或 custom:horizontal-stack-in-card / custom:grid-stack-in-card
+title: My Stack
 cards:
   - type: sensor
     entity: sensor.time
   - type: sensor
     entity: sensor.date
-```
-### Horizontal Stack
-```yaml
-type: custom:horizontal-stack-in-card
-title: Horizontal Stack
-cards:
-  - type: sensor
-    entity: sensor.temperature
-  - type: sensor
-    entity: sensor.humidity
 ```
 
 ### 统一卡片背景
@@ -92,10 +82,14 @@ cards:
 styles:
   background: rgba(0,0,0,0.3)
   box-shadow: none
-
 ```
 
-### 使用 card_mod 铺满高度
+### 自动拉伸（autoheight: true）
+- 允许堆叠卡片自动拉伸子卡片，使其填满可用的垂直空间。
+- 支持子卡片自适应高度，即使子卡片内容超过堆叠高度，也能正常显示和拉伸。
+#### 支持的卡片类型：
+- 垂直堆叠 (vertical-stack-in-card)
+- 网格堆叠 (grid-stack-in-card)
 ```yaml
 type: custom:vertical-stack-in-card
 cards:
@@ -107,20 +101,16 @@ cards:
     entity: sensor.home_assistant_supervisor_cpu_percent
     features_position: bottom
     vertical: false
-card_mod:
-  style: |
-    ha-card {
-      height: 100%;
-    }
 grid_options:
   columns: 6
   rows: 2
+  autoheight: true
 ```
 
 ---
 
 ## 注意事项
-grid_options.rows 不会自动拉伸子卡高度，如需铺满请结合 card_mod 使用。
+`styles: `只支持根卡片，子卡片请使用`card_mod`。
 
 ## 链接
 - 仓库地址：[hzonz/custom-stack-cards](https://github.com/hzonz/custom-stack-cards)
