@@ -1,5 +1,5 @@
 console.log(
-  "%c Custom Stack Cards v1.0.2 ",
+  "%c Custom Stack Cards v1.0.3 ",
   "color: #1976d2; font-weight: bold; background: #e3f2fd; border: 1px solid #1976d2; border-radius: 4px; padding: 2px 6px;"
 );
 
@@ -72,7 +72,7 @@ class BaseStackInCard extends HTMLElement {
     const columns = hasGridOptions && Number(config.grid_options.columns) > 0 ? Number(config.grid_options.columns) : null;
 
     if (columns) card.style.gridColumn = `span ${columns}`;
-    if (rows && this._rowHeightAuto && (this.localName === "vertical-stack-in-card" || this.localName === "grid-stack-in-card")) {
+    if (rows && this._rowHeightAuto && (this.localName === "vertical-stack-in-card" || this.localName === "horizontal-stack-in-card" || this.localName === "grid-stack-in-card")) {
       const baseRowHeight = parseInt(
         getComputedStyle(document.documentElement).getPropertyValue("--masonry-view-row-height") || "50",
         10
@@ -140,7 +140,6 @@ class BaseStackInCard extends HTMLElement {
       ele.style.border = "none";
       if (this._nested) ele.style.background = "var(--card-background-color, rgba(0,0,0,0))";
 
-      // ✅ v1.0.1 样式支持
       if ("styles" in this._config) {
         Object.entries(this._config.styles).forEach(([k, v]) => {
           ele.style.setProperty(k, v);
@@ -214,9 +213,26 @@ class VerticalStackInCard extends BaseStackInCard {
 /** 水平堆叠 */
 class HorizontalStackInCard extends BaseStackInCard {
   applyLayout(container) { 
-    container.style.display = "flex"; 
+    if (this._rowHeightAuto) {
+      container.style.display = "flex";
+      container.style.flexDirection = "row";
+      container.style.height = "100%";
+    } else {
+      container.style.display = "flex"; 
+      container.style.flexDirection = "row";
+    }
   }
-  applyChildStyle(child) { child.style.flex="1 1 0"; child.style.minWidth=0; }
+
+  applyChildStyle(child) { 
+    if (this._rowHeightAuto) {
+      child.style.flex = "1 1 0";
+      child.style.minHeight = 0;
+      child.style.width = "100%";
+    } else {
+      child.style.flex = "1 1 0";
+      child.style.minWidth = 0;
+    }
+  }
 }
 
 /** 网格堆叠 */
