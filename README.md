@@ -73,7 +73,7 @@ cards:
 
 ### 统一卡片背景
 ```yaml
-type: custom:vertical-stack-in-card
+type: custom:vertical-stack-in-card  # 或 custom:horizontal-stack-in-card / custom:grid-stack-in-card
 cards:
   - type: sensor
     entity: sensor.time
@@ -87,11 +87,8 @@ styles:
 ### 自动拉伸（autoheight: true）
 - 允许堆叠卡片自动拉伸子卡片，使其填满可用的垂直空间。
 - 支持子卡片自适应高度，即使子卡片内容超过堆叠高度，也能正常显示和拉伸。
-#### 支持的卡片类型：
-- 垂直堆叠 (vertical-stack-in-card)
-- 网格堆叠 (grid-stack-in-card)
 ```yaml
-type: custom:vertical-stack-in-card
+type: custom:vertical-stack-in-card  # 或 custom:horizontal-stack-in-card / custom:grid-stack-in-card
 cards:
   - type: tile
     entity: sensor.home_assistant_supervisor_cpu_percent
