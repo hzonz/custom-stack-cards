@@ -1,7 +1,7 @@
-import { LitElement, html, css } from "https://unpkg.com/lit@2.8.0/index.js?module";
+import { LitElement, html } from "https://unpkg.com/lit@2.8.0/index.js?module";
 import { repeat } from "https://unpkg.com/lit@2.8.0/directives/repeat.js?module";
 
-const STACK_CARDS_VERSION = "1.0.2-Lit";
+const STACK_CARDS_VERSION = "1.0.3-Lit";
 
 (function logOnce() {
   const key = "custom_stack_cards_logged";
@@ -22,6 +22,7 @@ class BaseStackInCard extends LitElement {
     _refCards: { state: true },
     _nested: { state: true },
     _rowHeightAuto: { state: true },
+    _rowsContext: { state: true },
   };
 
   constructor() {
@@ -30,17 +31,18 @@ class BaseStackInCard extends LitElement {
     this._nested = false;
     this._helpers = null;
     this._rowHeightAuto = false;
+    this._rowsContext = 0;
   }
 
   setConfig(config) {
     if (!config || !Array.isArray(config.cards)) {
       throw new Error('Card config incorrect: "cards" must be an array');
     }
-    this.config = config;
+    this.config = { ...config };
     this._nested = this._detectNestedStack();
 
-    // 检查 autoheight
     this._rowHeightAuto = config.grid_options?.autoheight === true;
+    this._rowsContext = config.grid_options?.rows || 0;
 
     this._renderCards();
   }
@@ -55,9 +57,22 @@ class BaseStackInCard extends LitElement {
           ? this._helpers.createRowElement(c)
           : this._helpers.createCardElement(c);
         el.hass = this.hass;
+
+        el.addEventListener("ll-rebuild", async (ev) => {
+          ev.stopPropagation();
+          const newEl = c.type === "divider"
+            ? this._helpers.createRowElement(c)
+            : this._helpers.createCardElement(c);
+          newEl.hass = this.hass;
+          const idx = this._refCards.indexOf(el);
+          if (idx > -1) this._refCards[idx] = newEl;
+          this.requestUpdate();
+        }, { once: true });
+
         return el;
       })
     );
+
     this.requestUpdate();
   }
 
@@ -66,7 +81,7 @@ class BaseStackInCard extends LitElement {
     while (node) {
       if (
         node.nodeType === 1 &&
-        ["vertical-stack-in-card","horizontal-stack-in-card","grid-stack-in-card"].includes(node.localName) &&
+        ["vertical-stack-in-card", "horizontal-stack-in-card", "grid-stack-in-card"].includes(node.localName) &&
         node !== this
       ) return true;
       node = node.parentNode || (node.getRootNode?.().host) || null;
@@ -112,9 +127,7 @@ class BaseStackInCard extends LitElement {
     return sizes.reduce((a,b)=>a+b,0);
   }
 
-  _getLayoutStyle() {
-    return "";
-  }
+  _getLayoutStyle() { return ""; }
 
   render() {
     return html`
@@ -123,7 +136,10 @@ class BaseStackInCard extends LitElement {
         style="overflow:hidden; ${this._nested ? 'background:var(--card-background-color, rgba(0,0,0,0)); box-shadow:none;' : ''}"
       >
         <div style="${this._getLayoutStyle()}">
-          ${repeat(this._refCards, (c,i)=>c.localName+":"+i, c => { this._applyChildStyle(c); return c; })}
+          ${repeat(this._refCards, (c,i)=>c.localName+":"+i, c => { 
+            this._applyChildStyle(c); 
+            return c; 
+          })}
         </div>
       </ha-card>
     `;
@@ -132,13 +148,12 @@ class BaseStackInCard extends LitElement {
   static getStubConfig() { return { cards: [] }; }
 }
 
-// 垂直堆叠
+/** 垂直堆叠 */
 class VerticalStackInCard extends BaseStackInCard {
   _getLayoutStyle() {
-    if (this._rowHeightAuto) {
-      return "display:flex; flex-direction:column; height:100%;";
-    }
-    return "display:block;";
+    return this._rowHeightAuto
+      ? "display:flex; flex-direction:column; height:100%;"
+      : "display:block;";
   }
 
   _applyChildStyle(child) {
@@ -154,17 +169,22 @@ class VerticalStackInCard extends BaseStackInCard {
   }
 }
 
-// 水平堆叠
+/** 水平堆叠 */
 class HorizontalStackInCard extends BaseStackInCard {
-  _getLayoutStyle() { return "display:flex;"; }
+  _getLayoutStyle() {
+    return this._rowHeightAuto
+      ? "display:flex; flex-direction:row; height:100%;"
+      : "display:flex; flex-direction:row;";
+  }
+
   _applyChildStyle(child) {
     super._applyChildStyle(child);
     child.style.flex = "1 1 0";
-    child.style.minWidth = "0";
+    child.style.minWidth = 0;
   }
 }
 
-// 网格堆叠
+/** 网格堆叠 */
 class GridStackInCard extends BaseStackInCard {
   _getLayoutStyle() {
     let style = "display:grid; gap:8px;";
@@ -173,8 +193,8 @@ class GridStackInCard extends BaseStackInCard {
     else if (cfg?.columns) style += `grid-template-columns:repeat(${cfg.columns},1fr);`;
     else style += "grid-template-columns:1fr;";
 
-    if (this._rowHeightAuto && this.config.grid_options?.rows) {
-      style += `grid-template-rows:repeat(${this.config.grid_options.rows},1fr);`;
+    if (this._rowHeightAuto && this._rowsContext > 0) {
+      style += `grid-template-rows:repeat(${this._rowsContext},1fr);`;
     } else {
       const baseRowHeight = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--masonry-view-row-height")||"50",10);
       style += `grid-auto-rows:${baseRowHeight}px;`;
