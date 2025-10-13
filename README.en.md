@@ -73,7 +73,7 @@ cards:
 
 ### Unified Card Background
 ```yaml
-type: custom:vertical-stack-in-card
+type: custom:vertical-stack-in-card  # 或 custom:horizontal-stack-in-card / custom:grid-stack-in-card
 cards:
   - type: sensor
     entity: sensor.time
@@ -87,11 +87,8 @@ styles:
 ### Auto Height (autoheight: true)
 - Allows stack cards to automatically stretch child cards to fill the available vertical space.
 - Supports child card content adaptation, so even if a child card exceeds the stack height, it will still display and stretch properly.
-#### Supported Card Types:
-- Vertical Stack (vertical-stack-in-card)
-- Grid Stack (grid-stack-in-card)
 ```yaml
-type: custom:vertical-stack-in-card
+type: custom:vertical-stack-in-card  # 或 custom:horizontal-stack-in-card / custom:grid-stack-in-card
 cards:
   - type: tile
     entity: sensor.home_assistant_supervisor_cpu_percent
