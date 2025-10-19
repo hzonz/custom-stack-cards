@@ -2,7 +2,7 @@
 
 # Custom Stack Cards
 
-**Custom Stack Cards** 是 Home Assistant 的自定义卡片库，提供 **Vertical Stack**  **Horizontal** **Grid** 三种卡片类型。它允许在单个 `<ha-card>` 内堆叠多个卡片，支持自定义样式，并保留原生 UI 编辑器功能。相比官方堆叠卡片，它去掉了多余的边框与阴影，让界面更简洁。
+**Custom Stack Cards** 是 Home Assistant 的自定义卡片库，提供 **Vertical**  **Horizontal** **Grid** 三种卡片类型。它允许在单个 `<ha-card>` 内堆叠多个卡片，支持自定义样式，并保留原生 UI 编辑器功能。相比官方堆叠卡片，它去掉了多余的边框与阴影，让界面更简洁。
 
 ---
 
