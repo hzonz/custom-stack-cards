@@ -2,7 +2,7 @@
 
 # Custom Stack Cards
 
-**Custom Stack Cards** is a custom card library for Home Assistant, providing three types of cards: **Vertical Stack**, **Horizontal Stack**, and **Grid Stack**. It allows stacking multiple cards within a single `<ha-card>`, supports custom styling, and preserves the native UI editor functionality. Compared to the official stack cards, it removes extra borders and shadows, resulting in a cleaner interface.
+**Custom Stack Cards** is a custom card library for Home Assistant, providing three types of cards: **Vertical**, **Horizontal**, and **Grid**. It allows stacking multiple cards within a single `<ha-card>`, supports custom styling, and preserves the native UI editor functionality. Compared to the official stack cards, it removes extra borders and shadows, resulting in a cleaner interface.
 
 ---
 
