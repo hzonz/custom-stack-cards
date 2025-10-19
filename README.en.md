@@ -2,7 +2,7 @@
 
 # Custom Stack Cards
 
-**Custom Stack Cards** is a custom card library for Home Assistant, providing **Vertical Stack** and **Horizontal Stack** card types. It allows stacking multiple cards inside a single `<ha-card>`, supports custom styles, and keeps compatibility with the native UI editor. Compared to the official stack cards, it removes extra borders and shadows for a cleaner look.
+**Custom Stack Cards** is a custom card library for Home Assistant, providing three types of cards: **Vertical Stack**, **Horizontal Stack**, and **Grid Stack**. It allows stacking multiple cards within a single `<ha-card>`, supports custom styling, and preserves the native UI editor functionality. Compared to the official stack cards, it removes extra borders and shadows, resulting in a cleaner interface.
 
 ---
 
@@ -13,7 +13,8 @@
 - Grid Stack: `custom:grid-stack-in-card`
 - Supports `styles:` custom styling, with CSS property support 
 - Full compatibility with the native UI editor  
-- Removes default borders and shadows  
+- Removes default borders and shadows
+- Default support for `Sections` view  
 
 ---
 
@@ -53,7 +54,7 @@ resources:
 | type          | string | —       | `custom:vertical-stack-in-card` or `custom:horizontal-stack-in-card` |
 | title         | string | —       | Card title                                                           |
 | cards         | array  | —       | Array of cards to stack                                              |
-| grid\_options | object | —       | Layout options, supports `columns` and `rows` and `autoheight`       |
+| grid\_options | object | —       | Layout options, supports `columns` and `rows`       |
 | styles        | object | —       | Custom styles (⚠️ YAML only, not supported in the visual editor)     |
 
 ---
@@ -82,26 +83,6 @@ cards:
 styles:
   background: rgba(0,0,0,0.3)
   box-shadow: none
-```
-
-### Auto Height (autoheight: true)
-- Allows stack cards to automatically stretch child cards to fill the available vertical space.
-- Supports child card content adaptation, so even if a child card exceeds the stack height, it will still display and stretch properly.
-```yaml
-type: custom:vertical-stack-in-card  # 或 custom:horizontal-stack-in-card / custom:grid-stack-in-card
-cards:
-  - type: tile
-    entity: sensor.home_assistant_supervisor_cpu_percent
-    features_position: bottom
-    vertical: false
-  - type: tile
-    entity: sensor.home_assistant_supervisor_cpu_percent
-    features_position: bottom
-    vertical: false
-grid_options:
-  columns: 6
-  rows: 2
-  autoheight: true
 ```
 
 ---
