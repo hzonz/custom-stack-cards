@@ -1,5 +1,9 @@
+//HTMLElement 实现
+//custom-stack-cards.js
+const VERSION = "v1.0.4";
+
 console.log(
-  "%c Custom Stack Cards v1.0.3 ",
+  `%cCustom Stack Cards ${VERSION}`,
   "color: #1976d2; font-weight: bold; background: #e3f2fd; border: 1px solid #1976d2; border-radius: 4px; padding: 2px 6px;"
 );
 
@@ -10,7 +14,7 @@ class BaseStackInCard extends HTMLElement {
     this._config = {};
     this._nested = false;
     this._helpers = null;
-    this._rowHeightAuto = false; // 自动拉伸开关
+    this._cardSize = {};
   }
 
   setConfig(config) {
@@ -18,7 +22,6 @@ class BaseStackInCard extends HTMLElement {
       throw new Error('Card config incorrect: "cards" must be an array');
     }
     this._config = { ...config };
-    this._cardSize = {};
     this._cardSize.promise = new Promise(resolve => (this._cardSize.resolve = resolve));
     this.renderCard();
   }
@@ -52,8 +55,12 @@ class BaseStackInCard extends HTMLElement {
     const card = document.createElement("ha-card");
     const cardContent = document.createElement("div");
     card.header = config.title;
-    card.style.overflow = "hidden";
 
+    card.style.overflow = "hidden";
+    card.style.display = "flex";
+    card.style.alignItems = "center";
+    card.style.height = "100%";
+ 
     if (this._nested) {
       card.style.boxShadow = "none";
       card.style.borderRadius = "0";
@@ -63,25 +70,6 @@ class BaseStackInCard extends HTMLElement {
       card.dataset.stackRoot = "true";
       card.style.background = "var(--card-background-color, white)";
     }
-
-    // 判断是否启用自动拉伸
-    const hasGridOptions = !!config.grid_options;
-    this._rowHeightAuto = hasGridOptions && (config.grid_options.autoheight === true);
-
-    const rows = hasGridOptions && Number(config.grid_options.rows) > 0 ? Number(config.grid_options.rows) : null;
-    const columns = hasGridOptions && Number(config.grid_options.columns) > 0 ? Number(config.grid_options.columns) : null;
-
-    if (columns) card.style.gridColumn = `span ${columns}`;
-    if (rows && this._rowHeightAuto && (this.localName === "vertical-stack-in-card" || this.localName === "horizontal-stack-in-card" || this.localName === "grid-stack-in-card")) {
-      const baseRowHeight = parseInt(
-        getComputedStyle(document.documentElement).getPropertyValue("--masonry-view-row-height") || "50",
-        10
-      );
-      card.style.minHeight = `${rows * baseRowHeight}px`;
-      card.style.height = "100%";
-    }
-
-    this._rowsContext = rows || 0;
 
     this.applyLayout(cardContent);
 
@@ -138,7 +126,7 @@ class BaseStackInCard extends HTMLElement {
       ele.style.boxShadow = "none";
       ele.style.borderRadius = "0";
       ele.style.border = "none";
-      if (this._nested) ele.style.background = "var(--card-background-color, rgba(0,0,0,0))";
+      if (this._nested) ele.style.background = "none";
 
       if ("styles" in this._config) {
         Object.entries(this._config.styles).forEach(([k, v]) => {
@@ -169,6 +157,32 @@ class BaseStackInCard extends HTMLElement {
     return sizes.reduce((a, b) => a + b, 0);
   }
 
+  getGridOptions() {
+    const featuresCount = this._config?.features?.length || 0;
+    const featurePosition = this._config?.feature_position || "below";
+
+    let rows = 0;
+    let min_columns;
+
+    if (featuresCount) {
+      if (featurePosition === "inline") {
+        min_columns = 12;
+      } else {
+        rows += featuresCount;
+      }
+    }
+
+    if (this._config?.vertical) {
+      rows++;
+      min_columns = 3;
+    }
+
+    return {
+      ...(rows ? { rows, min_rows: rows } : {}),
+      ...(min_columns ? { min_columns } : {})
+    };
+  }
+
   applyLayout(container) {}
   applyChildStyle(child) {}
 
@@ -189,49 +203,30 @@ class BaseStackInCard extends HTMLElement {
 /** 垂直堆叠 */
 class VerticalStackInCard extends BaseStackInCard {
   applyLayout(container) {
-    if (this._rowHeightAuto) {
-      container.style.display = "flex";
-      container.style.flexDirection = "column";
-      container.style.height = "100%";
-    } else {
-      container.style.display = "block";
-    }
+    container.style.display = "flex";
+    container.style.flexDirection = "column";
+    container.style.width = "100%";
   }
 
   applyChildStyle(child) {
-    if (this._rowHeightAuto) {
-      child.style.flex = "1 1 0";
-      child.style.minHeight = 0;
-      child.style.width = "100%";
-    } else {
-      child.style.display = "block";
-      child.style.width = "100%";
-    }
+    child.style.flex = "1 1 auto";
+    child.style.minHeight = 0;
+    child.style.width = "100%";
   }
 }
 
 /** 水平堆叠 */
 class HorizontalStackInCard extends BaseStackInCard {
-  applyLayout(container) { 
-    if (this._rowHeightAuto) {
-      container.style.display = "flex";
-      container.style.flexDirection = "row";
-      container.style.height = "100%";
-    } else {
-      container.style.display = "flex"; 
-      container.style.flexDirection = "row";
-    }
+  applyLayout(container) {
+    container.style.display = "flex";
+    container.style.flexDirection = "row";
+    container.style.width = "100%";
   }
 
-  applyChildStyle(child) { 
-    if (this._rowHeightAuto) {
-      child.style.flex = "1 1 0";
-      child.style.minHeight = 0;
-      child.style.width = "100%";
-    } else {
-      child.style.flex = "1 1 0";
-      child.style.minWidth = 0;
-    }
+  applyChildStyle(child) {
+    child.style.flex = "1 1 auto";
+    child.style.minWidth = 0;
+    child.style.minHeight = 0;
   }
 }
 
@@ -239,13 +234,18 @@ class HorizontalStackInCard extends BaseStackInCard {
 class GridStackInCard extends BaseStackInCard {
   applyLayout(container) {
     container.style.display = "grid";
+    container.style.width = "100%";
 
-    if (this._config.gridTemplateColumns) container.style.gridTemplateColumns = this._config.gridTemplateColumns;
-    else if (this._config.columns) container.style.gridTemplateColumns = `repeat(${this._config.columns}, 1fr)`;
-    else container.style.gridTemplateColumns = "1fr";
+    if (this._config.gridTemplateColumns) {
+      container.style.gridTemplateColumns = this._config.gridTemplateColumns;
+    } else if (this._config.columns) {
+      container.style.gridTemplateColumns = `repeat(${this._config.columns}, 1fr)`;
+    } else {
+      container.style.gridTemplateColumns = "1fr";
+    }
 
-    if (this._rowsContext > 0 && this._rowHeightAuto) {
-      container.style.gridTemplateRows = `repeat(${this._rowsContext}, 1fr)`;
+    if (this._config.rows) {
+      container.style.gridTemplateRows = `repeat(${this._config.rows}, 1fr)`;
     } else {
       const baseRowHeight = parseInt(
         getComputedStyle(document.documentElement).getPropertyValue("--masonry-view-row-height") || "50", 10
@@ -257,7 +257,9 @@ class GridStackInCard extends BaseStackInCard {
   applyChildStyle(child) {
     child.style.minWidth = 0;
     child.style.minHeight = 0;
-    if (child._config && child._config.gridArea) child.style.gridArea = child._config.gridArea;
+    if (child._config?.gridArea) {
+      child.style.gridArea = child._config.gridArea;
+    }
     child.style.width = "100%";
   }
 

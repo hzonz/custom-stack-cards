@@ -2,7 +2,7 @@
 
 # Custom Stack Cards
 
-**Custom Stack Cards** 是 Home Assistant 的自定义卡片库，提供 **Vertical Stack** 和 **Horizontal Stack** 两种卡片类型。它允许在单个 `<ha-card>` 内堆叠多个卡片，支持自定义样式，并保留原生 UI 编辑器功能。相比官方堆叠卡片，它去掉了多余的边框与阴影，让界面更简洁。
+**Custom Stack Cards** 是 Home Assistant 的自定义卡片库，提供 **Vertical**  **Horizontal** **Grid** 三种卡片类型。它允许在单个 `<ha-card>` 内堆叠多个卡片，支持自定义样式，并保留原生 UI 编辑器功能。相比官方堆叠卡片，它去掉了多余的边框与阴影，让界面更简洁。
 
 ---
 
@@ -13,7 +13,8 @@
 - 网格堆叠：`custom:grid-stack-in-card`
 - 支持 `styles: ` 自定义样式, 支持CSS属性  
 - 保留原生 UI 编辑器兼容性  
-- 去除默认边框和阴影  
+- 去除默认边框和阴影
+- 默认支持 `Sections` 视图 
 
 ---
 
@@ -53,7 +54,7 @@ resources:
 | type          | string | —   | `custom:vertical-stack-in-card` 或 `custom:horizontal-stack-in-card` |
 | title         | string | —   | 卡片标题                                                                |
 | cards         | array  | —   | 要堆叠的卡片数组                                                            |
-| grid\_options | object | —   | 布局选项，支持 columns 和 rows 和 autoheight                                              |
+| grid\_options | object | —   | 布局选项，支持 columns 和 rows                                             |
 | styles        | object | —   | 自定义样式（⚠️ 仅 YAML 配置，不支持可视化编辑器）                             |
 
 ---
@@ -82,26 +83,6 @@ cards:
 styles:
   background: rgba(0,0,0,0.3)
   box-shadow: none
-```
-
-### 自动拉伸（autoheight: true）
-- 允许堆叠卡片自动拉伸子卡片，使其填满可用的垂直空间。
-- 支持子卡片自适应高度，即使子卡片内容超过堆叠高度，也能正常显示和拉伸。
-```yaml
-type: custom:vertical-stack-in-card  # 或 custom:horizontal-stack-in-card / custom:grid-stack-in-card
-cards:
-  - type: tile
-    entity: sensor.home_assistant_supervisor_cpu_percent
-    features_position: bottom
-    vertical: false
-  - type: tile
-    entity: sensor.home_assistant_supervisor_cpu_percent
-    features_position: bottom
-    vertical: false
-grid_options:
-  columns: 6
-  rows: 2
-  autoheight: true
 ```
 
 ---
