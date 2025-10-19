@@ -1,9 +1,9 @@
 //HTMLElement 实现
 //custom-stack-cards.js
-const LUNAR_CARD_VERSION = "v1.0.4";
+const VERSION = "v1.0.4";
 
 console.log(
-  `%cCustom Stack Cards ${LUNAR_CARD_VERSION}`,
+  `%cCustom Stack Cards ${VERSION}`,
   "color: #1976d2; font-weight: bold; background: #e3f2fd; border: 1px solid #1976d2; border-radius: 4px; padding: 2px 6px;"
 );
 
