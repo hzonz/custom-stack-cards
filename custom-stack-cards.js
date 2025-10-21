@@ -61,6 +61,7 @@ class BaseStackInCard extends HTMLElement {
     this.applyLayout(stack);
 
     this._refCards.forEach(child => {
+      this.applyChildStyle(child);
       if (child.updateComplete) {
         child.updateComplete.then(() => this._styleCard(child));
       } else {
@@ -88,6 +89,7 @@ class BaseStackInCard extends HTMLElement {
           const container = this.shadowRoot?.querySelector("ha-card > .stack");
           if (container) {
             container.replaceChild(newEl, element);
+            this.applyChildStyle(newEl);
             if (newEl.updateComplete) {
               newEl.updateComplete.then(() => this._styleCard(newEl));
             } else {
@@ -103,7 +105,18 @@ class BaseStackInCard extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
-    if (this._refCards) this._refCards.forEach(c => (c.hass = hass));
+    if (this._refCards) {
+      this._refCards.forEach(c => (c.hass = hass));
+    }
+    // 确保异步子卡片也能拿到 hass
+    if (this.shadowRoot) {
+      const stack = this.shadowRoot.querySelector(".stack");
+      if (stack) {
+        stack.querySelectorAll("*").forEach(el => {
+          if (el && "hass" in el) el.hass = hass;
+        });
+      }
+    }
   }
 
   /** baseline 去背景样式 */
@@ -128,8 +141,15 @@ class BaseStackInCard extends HTMLElement {
   }
 
   _computeCardSize(card) {
-    if (typeof card.getCardSize === "function") return card.getCardSize();
-    return customElements.whenDefined(card.localName).then(() => this._computeCardSize(card)).catch(() => 1);
+    if (typeof card.getCardSize === "function") {
+      try {
+        return card.getCardSize();
+      } catch {
+        return 1;
+      }
+    }
+    // fallback，避免无限递归
+    return Promise.resolve(1);
   }
 
   async getCardSize() {
@@ -163,9 +183,6 @@ class BaseStackInCard extends HTMLElement {
     };
   }
 
-  applyLayout(container) {}
-  applyChildStyle(child) {}
-
   static async getConfigElement() {
     let cls = customElements.get("hui-vertical-stack-card");
     if (!cls) {
@@ -174,7 +191,7 @@ class BaseStackInCard extends HTMLElement {
       await customElements.whenDefined("hui-vertical-stack-card");
       cls = customElements.get("hui-vertical-stack-card");
     }
-    return cls.getConfigElement();
+    return cls.getConfigElement ? cls.getConfigElement() : document.createElement("div");
   }
 
   static getStubConfig() { return { cards: [] }; }
@@ -219,7 +236,7 @@ class HorizontalStackInCard extends BaseStackInCard {
       await customElements.whenDefined("hui-horizontal-stack-card");
       cls = customElements.get("hui-horizontal-stack-card");
     }
-    return cls.getConfigElement();
+    return cls.getConfigElement ? cls.getConfigElement() : document.createElement("div");
   }
 }
 
@@ -280,3 +297,4 @@ window.customCards.push(
   { type: "horizontal-stack-in-card", name: "Horizontal Stack In Card", description: "Horizontal stack without extra borders, supports styles", preview:false, documentationURL:"https://github.com/hzonz/custom-stack-cards" },
   { type: "grid-stack-in-card", name: "Grid Stack In Card", description: "Grid stack without extra borders, supports CSS grid layouts and styles", preview:false, documentationURL:"https://github.com/hzonz/custom-stack-cards" }
 );
+
