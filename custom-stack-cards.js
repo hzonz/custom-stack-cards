@@ -1,6 +1,6 @@
 //HTMLElement 实现
 //custom-stack-cards.js
-const VERSION = "v1.0.4";
+const VERSION = "v1.0.5";
 
 console.log(
   `%cCustom Stack Cards ${VERSION}`,
@@ -12,7 +12,6 @@ class BaseStackInCard extends HTMLElement {
     super();
     this._refCards = [];
     this._config = {};
-    this._nested = false;
     this._helpers = null;
     this._cardSize = {};
   }
@@ -21,73 +20,54 @@ class BaseStackInCard extends HTMLElement {
     if (!config || !config.cards || !Array.isArray(config.cards)) {
       throw new Error('Card config incorrect: "cards" must be an array');
     }
+    if (config.columns && (!Number.isInteger(config.columns) || config.columns <= 0)) {
+      throw new Error('"columns" must be a positive integer');
+    }
+    if (config.rows && (!Number.isInteger(config.rows) || config.rows <= 0)) {
+      throw new Error('"rows" must be a positive integer');
+    }
+    if (config.styles && typeof config.styles !== "object") {
+      throw new Error('"styles" must be an object');
+    }
+
     this._config = { ...config };
     this._cardSize.promise = new Promise(resolve => (this._cardSize.resolve = resolve));
     this.renderCard();
   }
 
-  _detectNestedStack() {
-    let node = this.parentNode;
-    while (node) {
-      if (node.nodeType === 1) {
-        const ln = node.localName;
-        if (
-          (ln === "vertical-stack-in-card" ||
-           ln === "horizontal-stack-in-card" ||
-           ln === "grid-stack-in-card") &&
-          node !== this
-        ) {
-          return true;
-        }
-      }
-      node = node.parentNode || (node.getRootNode && node.getRootNode().host) || null;
-    }
-    return false;
-  }
-
   async renderCard() {
-    const config = this._config;
     if (!this._helpers) this._helpers = await window.loadCardHelpers();
+    this._refCards = await Promise.all(this._config.cards.map(c => this._createCardElement(c)));
 
-    this._refCards = await Promise.all(config.cards.map(c => this._createCardElement(c)));
-    this._nested = this._detectNestedStack();
+    const shadowRoot = this.shadowRoot || this.attachShadow({ mode: "open" });
+    let card = shadowRoot.querySelector("ha-card");
+    let stack = shadowRoot.querySelector(".stack");
 
-    const card = document.createElement("ha-card");
-    const cardContent = document.createElement("div");
-    card.header = config.title;
+    if (!card) {
+      card = document.createElement("ha-card");
+      card.style.height = "100%";
+      card.style.alignItems = "center";
+      card.style.display = "flex";
 
-    card.style.overflow = "hidden";
-    card.style.display = "flex";
-    card.style.alignItems = "center";
-    card.style.height = "100%";
- 
-    if (this._nested) {
-      card.style.boxShadow = "none";
-      card.style.borderRadius = "0";
-      card.style.border = "none";
-      card.style.background = "var(--card-background-color, rgba(0,0,0,0))";
+      stack = document.createElement("div");
+      stack.classList.add("stack");
+      card.appendChild(stack);
+      shadowRoot.innerHTML = "";
+      shadowRoot.appendChild(card);
     } else {
-      card.dataset.stackRoot = "true";
-      card.style.background = "var(--card-background-color, white)";
+      stack.innerHTML = "";
     }
 
-    this.applyLayout(cardContent);
+    this.applyLayout(stack);
 
     this._refCards.forEach(child => {
-      this.applyChildStyle(child);
       if (child.updateComplete) {
         child.updateComplete.then(() => this._styleCard(child));
       } else {
         this._styleCard(child);
       }
-      cardContent.appendChild(child);
+      stack.appendChild(child);
     });
-
-    card.appendChild(cardContent);
-
-    const shadowRoot = this.shadowRoot || this.attachShadow({ mode: "open" });
-    shadowRoot.innerHTML = "";
-    shadowRoot.appendChild(card);
 
     this._cardSize.resolve();
   }
@@ -105,8 +85,15 @@ class BaseStackInCard extends HTMLElement {
         const idx = this._refCards.indexOf(element);
         if (idx > -1) {
           this._refCards[idx] = newEl;
-          const container = this.shadowRoot?.querySelector("ha-card > div");
-          if (container) container.replaceChild(newEl, element);
+          const container = this.shadowRoot?.querySelector("ha-card > .stack");
+          if (container) {
+            container.replaceChild(newEl, element);
+            if (newEl.updateComplete) {
+              newEl.updateComplete.then(() => this._styleCard(newEl));
+            } else {
+              this._styleCard(newEl);
+            }
+          }
         }
       });
     }, { once: true });
@@ -119,31 +106,25 @@ class BaseStackInCard extends HTMLElement {
     if (this._refCards) this._refCards.forEach(c => (c.hass = hass));
   }
 
+  /** baseline 去背景样式 */
   _styleCard(element) {
     if (!element || element.dataset.styled) return;
 
-    const applyStyles = (ele) => {
-      ele.style.boxShadow = "none";
-      ele.style.borderRadius = "0";
-      ele.style.border = "none";
-      if (this._nested) ele.style.background = "none";
-
-      if ("styles" in this._config) {
+    const applyStyles = (haCard) => {
+      haCard.style.boxShadow = "none";
+      haCard.style.borderRadius = "0";
+      haCard.style.border = "none";
+      haCard.style.background = "none";
+      if (this._config.styles) {
         Object.entries(this._config.styles).forEach(([k, v]) => {
-          ele.style.setProperty(k, v);
+          haCard.style.setProperty(k.replace(/_/g, "-"), v);
         });
       }
-
-      ele.dataset.styled = "true";
+      haCard.dataset.styled = "true";
     };
 
-    if (element.shadowRoot) {
-      const haCard = element.shadowRoot.querySelector("ha-card");
-      if (haCard) applyStyles(haCard);
-    } else if (typeof element.querySelector === "function") {
-      const haCard = element.querySelector("ha-card");
-      if (haCard) applyStyles(haCard);
-    }
+    const haCard = element.shadowRoot?.querySelector("ha-card") || element.querySelector("ha-card");
+    if (haCard) applyStyles(haCard);
   }
 
   _computeCardSize(card) {
@@ -160,7 +141,6 @@ class BaseStackInCard extends HTMLElement {
   getGridOptions() {
     const featuresCount = this._config?.features?.length || 0;
     const featurePosition = this._config?.feature_position || "below";
-
     let rows = 0;
     let min_columns;
 
@@ -203,6 +183,7 @@ class BaseStackInCard extends HTMLElement {
 /** 垂直堆叠 */
 class VerticalStackInCard extends BaseStackInCard {
   applyLayout(container) {
+    container.classList.add("stack", "vertical");
     container.style.display = "flex";
     container.style.flexDirection = "column";
     container.style.width = "100%";
@@ -218,6 +199,7 @@ class VerticalStackInCard extends BaseStackInCard {
 /** 水平堆叠 */
 class HorizontalStackInCard extends BaseStackInCard {
   applyLayout(container) {
+    container.classList.add("stack", "horizontal");
     container.style.display = "flex";
     container.style.flexDirection = "row";
     container.style.width = "100%";
@@ -228,11 +210,23 @@ class HorizontalStackInCard extends BaseStackInCard {
     child.style.minWidth = 0;
     child.style.minHeight = 0;
   }
+
+  static async getConfigElement() {
+    let cls = customElements.get("hui-horizontal-stack-card");
+    if (!cls) {
+      const helpers = await window.loadCardHelpers();
+      helpers.createCardElement({ type: "horizontal-stack", cards: [] });
+      await customElements.whenDefined("hui-horizontal-stack-card");
+      cls = customElements.get("hui-horizontal-stack-card");
+    }
+    return cls.getConfigElement();
+  }
 }
 
 /** 网格堆叠 */
 class GridStackInCard extends BaseStackInCard {
   applyLayout(container) {
+    container.classList.add("stack", "grid");
     container.style.display = "grid";
     container.style.width = "100%";
 
@@ -273,6 +267,7 @@ class GridStackInCard extends BaseStackInCard {
     }
     return cls.getConfigElement();
   }
+
 }
 
 customElements.define("vertical-stack-in-card", VerticalStackInCard);
@@ -284,4 +279,6 @@ window.customCards.push(
   { type: "vertical-stack-in-card", name: "Vertical Stack In Card", description: "Vertical stack without extra borders, supports styles", preview:false, documentationURL:"https://github.com/hzonz/custom-stack-cards" },
   { type: "horizontal-stack-in-card", name: "Horizontal Stack In Card", description: "Horizontal stack without extra borders, supports styles", preview:false, documentationURL:"https://github.com/hzonz/custom-stack-cards" },
   { type: "grid-stack-in-card", name: "Grid Stack In Card", description: "Grid stack without extra borders, supports CSS grid layouts and styles", preview:false, documentationURL:"https://github.com/hzonz/custom-stack-cards" }
+);
+
 );
