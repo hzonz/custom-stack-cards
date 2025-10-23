@@ -1,0 +1,13 @@
+{
+  "name": "custom-stack-cards",
+  "version": "v1.0.5-lit",
+  "type": "module",
+  "scripts": {
+    "build": "vite build"
+  },
+  "devDependencies": {
+    "lit": "^3.3.1",
+    "vite": "^7.1.10",
+    "terser": "^5.44.0"
+  }
+}
