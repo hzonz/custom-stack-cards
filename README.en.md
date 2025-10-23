@@ -72,19 +72,6 @@ cards:
     entity: sensor.date
 ```
 
-### Unified Card Background
-```yaml
-type: custom:vertical-stack-in-card  # 或 custom:horizontal-stack-in-card / custom:grid-stack-in-card
-cards:
-  - type: sensor
-    entity: sensor.time
-  - type: sensor
-    entity: sensor.date
-styles:
-  background: rgba(0,0,0,0.3)
-  box-shadow: none
-```
-
 ---
 
 ## Notes
