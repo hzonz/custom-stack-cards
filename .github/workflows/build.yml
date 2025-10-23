@@ -1,0 +1,55 @@
+name: Custom Stack Cards Build & Release
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Custom Stack Cards
+        run: npm run build
+
+      - name: Extract version
+        id: get_version
+        run: |
+          version=$(jq -r .version package.json)
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          if git rev-parse "refs/tags/${{ steps.get_version.outputs.version }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./custom-stack-cards.js
+          name: "Custom Stack Cards ${{ steps.get_version.outputs.version }}"
+          tag_name: "${{ steps.get_version.outputs.version }}"
+          draft: true
+          generate_release_notes: true
