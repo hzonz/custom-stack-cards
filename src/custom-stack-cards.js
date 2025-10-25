@@ -1,7 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { repeat } from "lit/directives/repeat.js";
 
-const VERSION = "v1.0.5-lit";
+const VERSION = "v1.0.6-lit";
 
 console.log(
   `%cCustom Stack Cards ${VERSION}`,
@@ -128,7 +128,7 @@ class BaseStackInCard extends LitElement {
       if (featurePosition === "inline") min_columns = 12;
       else rows += featuresCount;
     }
-    if (this._layoutMode() === "vertical") { rows++; min_columns = 3; }
+    if (this.config?.vertical) { rows++; min_columns = 3; }
     return {...(rows?{rows,min_rows:rows}:{}),...(min_columns?{min_columns}:{})};
   }
 
