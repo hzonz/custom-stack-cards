@@ -1,6 +1,6 @@
 {
   "name": "custom-stack-cards",
-  "version": "v1.0.5-lit",
+  "version": "v1.0.6-lit",
   "type": "module",
   "scripts": {
     "build": "vite build"
