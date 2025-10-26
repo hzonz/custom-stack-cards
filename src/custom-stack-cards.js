@@ -1,7 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { repeat } from "lit/directives/repeat.js";
 
-const VERSION = "v1.0.6-lit";
+const VERSION = "v1.0.7-lit";
 
 console.log(
   `%cCustom Stack Cards ${VERSION}`,
@@ -17,7 +17,7 @@ class BaseStackInCard extends LitElement {
 
   static styles = css`
     :host { -webkit-tap-highlight-color: transparent; }
-    ha-card { display: flex; align-items: center; height: 100%; overflow: hidden; }
+    ha-card { display: flex; height: 100%; overflow: hidden; }
     .stack { display: flex; flex: 1; width: 100%; }
     .stack.vertical { flex-direction: column; }
     .stack.horizontal { flex-direction: row; }
