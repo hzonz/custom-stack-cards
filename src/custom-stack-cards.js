@@ -17,7 +17,8 @@ class BaseStackInCard extends LitElement {
 
   static styles = css`
     :host { -webkit-tap-highlight-color: transparent; }
-    ha-card { display: flex; height: 100%; overflow: hidden; }
+    ha-card { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+    .card-title { font-size: 1.8em; font-weight: bold; padding: 12px 16px 0; margin: 0; }
     .stack { display: flex; flex: 1; width: 100%; }
     .stack.vertical { flex-direction: column; }
     .stack.horizontal { flex-direction: row; }
@@ -56,11 +57,8 @@ class BaseStackInCard extends LitElement {
       if (this._hass) el.hass = this._hass;
 
       const applyStyle = () => this._applyBaselineStyle(el);
-      if (el.updateComplete) {
-        el.updateComplete.then(() => applyStyle());
-      } else {
-        setTimeout(applyStyle, 0);
-      }
+      if (el.updateComplete) el.updateComplete.then(() => applyStyle());
+      else setTimeout(applyStyle, 0);
 
       el.addEventListener("ll-rebuild", () => this._createCards(), { once: true });
     });
@@ -106,8 +104,11 @@ class BaseStackInCard extends LitElement {
 
     return html`
       <ha-card style="${cardStyle}">
+        ${this.config?.title
+          ? html`<div class="card-title">${this.config.title}</div>`
+          : ""}
         <div class="stack ${mode}">
-          ${repeat(this._refCards||[],(c,i)=>i,(c,i)=>c)}
+          ${repeat(this._refCards || [], (c, i) => i, (c, i) => c)}
         </div>
       </ha-card>
     `;
