@@ -1,7 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { repeat } from "lit/directives/repeat.js";
 
-const VERSION = "v1.0.6-lit";
+const VERSION = "v1.0.7-lit";
 
 console.log(
   `%cCustom Stack Cards ${VERSION}`,
@@ -17,11 +17,12 @@ class BaseStackInCard extends LitElement {
 
   static styles = css`
     :host { -webkit-tap-highlight-color: transparent; }
-    ha-card { display: flex; align-items: center; height: 100%; overflow: hidden; }
+    ha-card { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+    .card-title { font-size: 1.2em; font-weight: bold; padding: 12px 16px 0; margin: 0; }
     .stack { display: flex; flex: 1; width: 100%; }
     .stack.vertical { flex-direction: column; }
     .stack.horizontal { flex-direction: row; }
-    .stack.grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width: 100%; }
+    .stack.grid { display: grid; gap: 8px; width: 100%; }
     .stack > * { flex: 1 1 auto; min-height: 0; min-width: 0; width: 100%; }
   `;
 
@@ -56,11 +57,8 @@ class BaseStackInCard extends LitElement {
       if (this._hass) el.hass = this._hass;
 
       const applyStyle = () => this._applyBaselineStyle(el);
-      if (el.updateComplete) {
-        el.updateComplete.then(() => applyStyle());
-      } else {
-        setTimeout(applyStyle, 0);
-      }
+      if (el.updateComplete) el.updateComplete.then(() => applyStyle());
+      else setTimeout(applyStyle, 0);
 
       el.addEventListener("ll-rebuild", () => this._createCards(), { once: true });
     });
@@ -100,15 +98,24 @@ class BaseStackInCard extends LitElement {
     return Object.entries(styles).map(([k,v])=>`${k.replace(/_/g,"-")}:${v}`).join("; ");
   }
 
+  _renderStack(mode) {
+    const extraStyle = mode === "grid" ? this._gridStyleString?.() : "";
+    return html`
+      <div class="stack ${mode}" style="${extraStyle}">
+        ${repeat(this._refCards || [], (c, i) => i, (c, i) => c)}
+      </div>
+    `;
+  }
+
   render() {
     const mode = this._layoutMode();
     const cardStyle = this._rootCardStyleString();
+    const title = this.config?.title;
 
     return html`
       <ha-card style="${cardStyle}">
-        <div class="stack ${mode}">
-          ${repeat(this._refCards||[],(c,i)=>i,(c,i)=>c)}
-        </div>
+        ${title ? html`<h1 class="card-title">${title}</h1>` : ""}
+        ${this._renderStack(mode)}
       </ha-card>
     `;
   }
@@ -139,20 +146,24 @@ class BaseStackInCard extends LitElement {
   }
 
   static getStubConfig() { return { cards: [] }; }
+
+  static async _getHelperElement(type, tag) {
+    let cls = customElements.get(tag);
+    if (!cls) {
+      const helpers = await window.loadCardHelpers();
+      helpers.createCardElement({ type, cards: [] });
+      await customElements.whenDefined(tag);
+      cls = customElements.get(tag);
+    }
+    return cls.getConfigElement?.() || document.createElement("div");
+  }
 }
 
 /** Vertical Stack Card */
 class VerticalStackInCard extends BaseStackInCard {
   _layoutMode() { return "vertical"; }
-  static async getConfigElement() {
-    let cls = customElements.get("hui-vertical-stack-card");
-    if (!cls) {
-      const helpers = await window.loadCardHelpers();
-      helpers.createCardElement({ type: "vertical-stack", cards: [] });
-      await customElements.whenDefined("hui-vertical-stack-card");
-      cls = customElements.get("hui-vertical-stack-card");
-    }
-    return cls.getConfigElement?.() || document.createElement("div");
+  static getConfigElement() {
+    return this._getHelperElement("vertical-stack", "hui-vertical-stack-card");
   }
 }
 customElements.define("vertical-stack-in-card", VerticalStackInCard);
@@ -160,15 +171,8 @@ customElements.define("vertical-stack-in-card", VerticalStackInCard);
 /** Horizontal Stack Card */
 class HorizontalStackInCard extends BaseStackInCard {
   _layoutMode() { return "horizontal"; }
-  static async getConfigElement() {
-    let cls = customElements.get("hui-horizontal-stack-card");
-    if (!cls) {
-      const helpers = await window.loadCardHelpers();
-      helpers.createCardElement({ type: "horizontal-stack", cards: [] });
-      await customElements.whenDefined("hui-horizontal-stack-card");
-      cls = customElements.get("hui-horizontal-stack-card");
-    }
-    return cls.getConfigElement?.() || document.createElement("div");
+  static getConfigElement() {
+    return this._getHelperElement("horizontal-stack", "hui-horizontal-stack-card");
   }
 }
 customElements.define("horizontal-stack-in-card", HorizontalStackInCard);
@@ -176,22 +180,27 @@ customElements.define("horizontal-stack-in-card", HorizontalStackInCard);
 /** Grid Stack Card */
 class GridStackInCard extends BaseStackInCard {
   _layoutMode() { return "grid"; }
-  static async getConfigElement() {
-    let cls = customElements.get("hui-grid-card");
-    if (!cls) {
-      const helpers = await window.loadCardHelpers();
-      helpers.createCardElement({ type: "grid", cards: [] });
-      await customElements.whenDefined("hui-grid-card");
-      cls = customElements.get("hui-grid-card");
-    }
-    return cls.getConfigElement?.() || document.createElement("div");
+
+  _gridStyleString() {
+    const cols = this.config?.columns;
+    const square = this.config?.square;
+    let style = "";
+    if (cols) style += `grid-template-columns: repeat(${cols}, 1fr);`;
+    if (square) style += `grid-auto-rows: 1fr;`;
+    return style;
+  }
+
+  static getConfigElement() {
+    return this._getHelperElement("grid", "hui-grid-card");
   }
 }
 customElements.define("grid-stack-in-card", GridStackInCard);
 
+/** 注册 customCards */
 window.customCards = window.customCards || [];
-window.customCards.push(
-  { type: "vertical-stack-in-card", name: "Vertical Stack In Card", description: "Vertical stack without extra borders, supports styles", preview:false, documentationURL:"https://github.com/hzonz/custom-stack-cards" },
-  { type: "horizontal-stack-in-card", name: "Horizontal Stack In Card", description: "Horizontal stack without extra borders, supports styles", preview:false, documentationURL:"https://github.com/hzonz/custom-stack-cards" },
-  { type: "grid-stack-in-card", name: "Grid Stack In Card", description: "Grid stack without extra borders, supports CSS grid layouts and styles", preview:false, documentationURL:"https://github.com/hzonz/custom-stack-cards" }
-);
+[
+  { type: "vertical-stack-in-card", name: "Vertical Stack In Card", description: "Vertical stack without extra borders, supports styles" },
+  { type: "horizontal-stack-in-card", name: "Horizontal Stack In Card", description: "Horizontal stack without extra borders, supports styles" },
+  { type: "grid-stack-in-card", name: "Grid Stack In Card", description: "Grid stack without extra borders, supports CSS grid layouts and styles" }
+].forEach(c => window.customCards.push({ ...c, preview:false, documentationURL:"https://github.com/hzonz/custom-stack-cards" }));
+
