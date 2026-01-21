@@ -115,7 +115,6 @@ class BaseStackInCard extends LitElement {
           border-radius: 0 !important;
           transition: none !important;
         }
-        .card-content { padding: 0 !important; }
       `;
       root.appendChild(styleTag);
       this._styleCache.add(root);
